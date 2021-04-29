@@ -143,6 +143,7 @@ def get_enriched_data(data):
         doc["hashtags"] = data['entities']['hashtags']
         doc["retweet_count"] = data['retweet_count']
 #        doc["likes_count"] = data['favourites_count']  #need to find this
+#number of followers for twitter account
         doc["date_created"] = data['created_at']
         doc["is_leader"] =True
         doc["regular_stream"] = False
