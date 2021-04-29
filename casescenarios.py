@@ -1,0 +1,187 @@
+import tweepy
+from tweepy import OAuthHandler
+from better_profanity import profanity
+from afinn import Afinn
+from emoji import UNICODE_EMOJI
+from config import consumer_key, consumer_secret, access_token, access_token_secret
+from config import host, port, username, password, db_name, user_list
+import couchdb
+import time
+import datetime
+import json
+
+
+def connect_to_couch_db_server():
+    secure_remote_server = couchdb.Server('http://' + username + ':' + password + '@' + host + ':' + port)
+    return secure_remote_server
+
+
+def connect_to_database(server):
+    try:
+        return server[db_name]
+    except:
+        return server.create(db_name)
+
+
+server = connect_to_couch_db_server()
+db = connect_to_database(server)
+
+
+def initializedDB():
+    server = connect_to_couch_db_server()
+    db = connect_to_database(server)
+
+
+def run_batch_for_all_users():
+    invalidator = ["-", "Twitter Username", " "]
+    count_of_users = 0
+    for user in user_list:
+        if user not in invalidator and user != None:
+            count_of_users = count_of_users + 1
+            print("current user")
+            print(user)
+            print("\n")
+            if user[0] != '@':
+                user = '@' + user
+                get_tweets_and_save(user)
+            else:
+                get_tweets_and_save(user)
+                # twitter_stream.filter(follow=user)
+
+
+def get_tweets_and_save(user):
+    duplicate_count = 0
+    tweets = custom_runner(user)
+    for tweet in tweets:
+        try:
+            if server is None or db is None:
+                initializedDB()
+            MyDocId = tweet.id_str
+            tweet = json.dumps(tweet._json)
+            tweet = json.loads(tweet)
+
+            temp_record = db.get(MyDocId)
+            # Duplicate check
+            if temp_record is not None:
+                duplicate_count = duplicate_count + 1
+                print("There was a duplicate tweet")
+                print(duplicate_count)
+                print("\n")
+            else:
+                tweet = get_enriched_data(tweet)
+                if tweet is not None:
+                    db.save(tweet)
+
+
+
+        except BaseException as e:
+            print("Error on_data: %s" % str(e))
+
+
+def custom_runner(id):
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    api = tweepy.API(auth)
+    # client = tweepy.Client(auth)
+    startDate = datetime.datetime(2011, 6, 1, 0, 0, 0)
+    endDate = datetime.datetime(2022, 1, 1, 0, 0, 0)
+
+    tweets = []
+    # fetching the user
+    user = api.get_user(id)
+
+    # fetching the statuses_count attribute
+    statuses_count = user.statuses_count
+    print(statuses_count)
+    print('***********************************')
+    try:
+        # initialize a list to hold all the tweepy Tweets
+        alltweets = []
+
+        # make initial request for most recent tweets (200 is the maximum allowed count)
+        new_tweets = api.user_timeline(screen_name=id, count=200)
+
+        # save most recent tweets
+        alltweets.extend(new_tweets)
+
+        oldest = alltweets[-1].id - 1
+
+        if (alltweets is not None and alltweets.count() == 200):
+            # keep grabbing tweets until there are no tweets left to grab
+            while len(new_tweets) > 0:
+                print(f"getting tweets before {oldest}")
+
+                # all subsequent requests use the max_id param to prevent duplicates
+                new_tweets = api.user_timeline(screen_name=id, count=200, max_id=oldest)
+
+                # save most recent tweets
+                alltweets.extend(new_tweets)
+
+                # update the id of the oldest tweet less one
+                oldest = alltweets[-1].id - 1
+
+    except:
+        pass
+
+    return alltweets
+
+
+
+
+
+def get_enriched_data(data):
+    print(data)
+    doc = {}
+    if data['text']:
+        doc['_id'] = data['id_str']
+        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'])
+        doc['tweet'] = data['text']
+        print(data['text'])
+        doc["vulgarity"] = is_vulgar(data['text'])
+        doc["location"] = data['coordinates']
+        doc["geo"] = data['geo']
+        doc["hashtags"] = data['entities']['hashtags']
+        doc["retweet_count"] = data['retweet_count']
+        doc["likes_count"] = data['favourites_count']
+        doc["date_created"] = data['created_at']
+        doc["is_leader"] =True
+        doc["regular_stream"] = False
+        doc["is_political"] = is_political(data['text'], data['entities']['user_mentions'])
+        doc["full_tweet"] = data
+    return (doc)
+
+
+def is_political(text, user_mentions):
+    """Needs completing"""
+    # The    tweet is a    candidate’s    retweet;
+    # The    tweet    targets    at   least    one    candidate;
+    # The    tweet    mentions    at    least    one    candidate;
+    # The    tweet    has    a    candidate’s    proper    name;
+    # https://jisajournal.springeropen.com/articles/10.1186/s13174-018-0089-0
+
+
+    # returns true as quoted by political candidate
+
+
+    return True
+
+
+def is_vulgar(text):
+    return (profanity.contains_profanity(text))
+
+
+def is_emoji(s):
+    return s in UNICODE_EMOJI
+
+
+def sentiment_score(text, language="en", emo=False):
+    emo = is_emoji(text)
+    try:
+        afinn = Afinn(language=language, emoticons=emo)
+        return (afinn.score(text))
+    except:
+        afinn = Afinn()
+        return (afinn.score(text))
+
+
+run_batch_for_all_users()
