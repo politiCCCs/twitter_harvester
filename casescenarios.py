@@ -142,7 +142,7 @@ def get_enriched_data(data):
         doc["geo"] = data['geo']
         doc["hashtags"] = data['entities']['hashtags']
         doc["retweet_count"] = data['retweet_count']
-        doc["likes_count"] = data['favourites_count']
+#        doc["likes_count"] = data['favourites_count']  #need to find this
         doc["date_created"] = data['created_at']
         doc["is_leader"] =True
         doc["regular_stream"] = False
