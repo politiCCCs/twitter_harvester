@@ -36,17 +36,21 @@ def run_batch_for_all_users():
     invalidator = ["-", "Twitter Username", " "]
     count_of_users = 0
     for user in user_list:
-        if user not in invalidator and user != None:
-            count_of_users = count_of_users + 1
-            print("current user")
-            print(user)
-            print("\n")
-            if user[0] != '@':
-                user = '@' + user
-                get_tweets_and_save(user)
-            else:
-                get_tweets_and_save(user)
-                # twitter_stream.filter(follow=user)
+        try:
+            if user not in invalidator and user != None:
+                count_of_users = count_of_users + 1
+                print("current user")
+                print(user)
+                print("\n")
+                if user[0] != '@':
+                    user = '@' + user
+                    get_tweets_and_save(user)
+                else:
+                    get_tweets_and_save(user)
+                    # twitter_stream.filter(follow=user)
+        except:
+            print("user not found {}".format(user))
+            continue
 
 
 def get_tweets_and_save(user):
