@@ -4,7 +4,7 @@ from better_profanity import profanity
 from afinn import Afinn
 from emoji import UNICODE_EMOJI
 from config import consumer_key, consumer_secret, access_token, access_token_secret
-from config import host, port, username, password, db_name, user_list
+from config import host, port, username, password, db_name, user_list, labor_mp, liberal_mp, green_mp
 import couchdb
 import time
 import datetime
@@ -51,6 +51,7 @@ def run_batch_for_all_users():
         except:
             print("user not found {}".format(user))
             continue
+
 
 
 def get_tweets_and_save(user):
@@ -138,26 +139,47 @@ def get_enriched_data(data):
     doc = {}
     if data['text']:
         doc['_id'] = data['id_str']
-        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'])
+        doc['emojis'] = get_emojis(data['text'])
+        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], len(doc['emojis']) > 0)
         doc['tweet'] = data['text']
-        print(data['text'])
         doc["vulgarity"] = is_vulgar(data['text'])
         doc["location"] = data['coordinates']
         doc["geo"] = data['geo']
         doc["hashtags"] = data['entities']['hashtags']
         doc["retweet_count"] = data['retweet_count']
-#        doc["likes_count"] = data['favourites_count']  #need to find this
-#number of followers for twitter account
+        doc["likes"] = data['favorite_count']
+        doc["followers_count"] = data['user']['followers_count']
         doc["date_created"] = data['created_at']
         doc["is_leader"] =True
         doc["regular_stream"] = False
         doc["is_political"] = is_political(data['text'], data['entities']['user_mentions'])
+        doc["is_political_general"] = is_general_political(doc["tweet"], doc["hashtags"])
+        doc["is_liberals"] = is_liberals(data['user']['screen_name'])
+        print("user_screen_name")
+        print(data['user']['screen_name'])
+        doc["is_labor"] = is_labor(data['user']['screen_name'])
+        doc["is_greens"] = is_greens(data['user']['screen_name'])
         doc["full_tweet"] = data
     return (doc)
 
+def is_liberals(user):
+    user = '@' + user
+    return user in liberal_mp
+
+def is_labor(user):
+    user = '@' + user
+    return user in labor_mp
+
+def is_greens(user):
+    user = '@' + user
+    return user in green_mp
+
+def is_general_political(text, hashtags):
+    # returns true as quoted by political candidate
+    return True
+
 
 def is_political(text, user_mentions):
-    """Needs completing"""
     # The    tweet is a    candidate’s    retweet;
     # The    tweet    targets    at   least    one    candidate;
     # The    tweet    mentions    at    least    one    candidate;
@@ -175,18 +197,17 @@ def is_vulgar(text):
     return (profanity.contains_profanity(text))
 
 
-def is_emoji(s):
-    return s in UNICODE_EMOJI
+def get_emojis(s):
+    return ''.join(c for c in s if c in UNICODE_EMOJI)
 
 
 def sentiment_score(text, language="en", emo=False):
-    emo = is_emoji(text)
     try:
         afinn = Afinn(language=language, emoticons=emo)
-        return (afinn.score(text))
+        return(afinn.score(text))
     except:
         afinn = Afinn()
-        return (afinn.score(text))
+        return(afinn.score(text))
 
 
 run_batch_for_all_users()
