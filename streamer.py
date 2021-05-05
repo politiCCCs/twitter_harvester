@@ -93,8 +93,8 @@ def get_enriched_data(data):
         doc["location_type"]=data['place']['place_type']
         doc["hashtags"]=data['entities']['hashtags']
         doc["retweet_count"]=data['retweet_count']
- #       doc["likes_count"]=data['favourites_count'] #need to find this
-#number of followers for twitter account
+        doc["likes"] = data['favorite_count']
+        doc["followers_count"] = data['user']['followers_count']
         doc["date_created"]=data['created_at']
         doc["regular_stream"]=True
         doc["is_political"]=is_political(data['text'],data['entities']['user_mentions'],data['user']['screen_name'])
