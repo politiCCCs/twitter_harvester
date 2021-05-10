@@ -140,8 +140,8 @@ def get_enriched_data(data):
     if data['text']:
         doc['_id'] = data['id_str']
         doc['user_name'] = data['user']['screen_name']
-        doc['emojis'] = get_emojis(data['text'])
-        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], len(doc['emojis']) > 0)
+        doc['emojis'] = is_emoji(data['text'])
+        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'])
         doc['tweet'] = data['text']
         doc["vulgarity"] = is_vulgar(data['text'])
         doc["location"] = data['coordinates']
@@ -197,11 +197,12 @@ def is_vulgar(text):
     return (profanity.contains_profanity(text))
 
 
-def get_emojis(s):
-    return ''.join(c for c in s if c in UNICODE_EMOJI)
+def is_emoji(s):
+    return s in UNICODE_EMOJI
 
 
 def sentiment_score(text, language="en", emo=False):
+    emo = is_emoji(text)
     try:
         afinn = Afinn(language=language, emoticons=emo)
         return(afinn.score(text))
