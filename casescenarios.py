@@ -139,6 +139,7 @@ def get_enriched_data(data):
     doc = {}
     if data['text']:
         doc['_id'] = data['id_str']
+        doc['user_name'] = data['user']['screen_name']
         doc['emojis'] = get_emojis(data['text'])
         doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], len(doc['emojis']) > 0)
         doc['tweet'] = data['text']
@@ -159,7 +160,6 @@ def get_enriched_data(data):
         print(data['user']['screen_name'])
         doc["is_labor"] = is_labor(data['user']['screen_name'])
         doc["is_greens"] = is_greens(data['user']['screen_name'])
-        doc["full_tweet"] = data
     return (doc)
 
 def is_liberals(user):
