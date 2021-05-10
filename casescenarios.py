@@ -163,15 +163,18 @@ def get_enriched_data(data):
     return (doc)
 
 def is_liberals(user):
-    user = '@' + user
+    if user[0] != '@':
+        user = '@' + user
     return user in liberal_mp
 
 def is_labor(user):
-    user = '@' + user
+    if user[0] != '@':
+        user = '@' + user
     return user in labor_mp
 
 def is_greens(user):
-    user = '@' + user
+    if user[0] != '@':
+        user = '@' + user
     return user in green_mp
 
 def is_general_political(text, hashtags):
