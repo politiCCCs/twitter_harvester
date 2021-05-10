@@ -65,7 +65,6 @@ def load_from_file_to_db(fname):
 
 
 def get_enriched_data(data):
-    print(data)
     doc={}
     if data['text']:
         start = time.time()
@@ -79,8 +78,8 @@ def get_enriched_data(data):
         doc["vulgarity"]=is_vulgar(data['text'])
         doc["location"]=data['coordinates']
         doc["geo"]=data['geo']
-        doc["location_name"]=data['place']['name']
-        doc["location_type"]=data['place']['place_type']
+        #doc["location_name"]=data['place']['name']
+        #doc["location_type"]=data['place']['place_type']
         doc["hashtags"]=data['entities']['hashtags']
         doc["retweet_count"]=data['retweet_count']
         doc["likes"] = data['favorite_count']
