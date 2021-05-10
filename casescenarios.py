@@ -111,7 +111,7 @@ def custom_runner(id):
 
         oldest = alltweets[-1].id - 1
 
-        if (alltweets is not None and alltweets.count() == 200):
+        if (alltweets is not None and len(alltweets) == 200):
             # keep grabbing tweets until there are no tweets left to grab
             while len(new_tweets) > 0:
                 print(f"getting tweets before {oldest}")
