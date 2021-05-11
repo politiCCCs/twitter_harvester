@@ -1,9 +1,9 @@
 
-#database (needs modifying once our db is set up)
-host = "127.0.0.1"
+#database (newest)
+host = "172.26.132.226"
 port = "5984"
 username = password = "admin"
-db_name='tweet_database'
+db_name='twitter_db'
 
 
 #twitter api
