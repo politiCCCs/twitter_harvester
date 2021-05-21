@@ -9,6 +9,7 @@ import couchdb
 import time
 import datetime
 import json
+import emojis
 
 
 def connect_to_couch_db_server():
@@ -140,8 +141,9 @@ def get_enriched_data(data):
     if data['text']:
         doc['_id'] = data['id_str']
         doc['user_name'] = data['user']['screen_name']
-        doc['emojis'] = is_emoji(data['text'])
-        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'])
+        doc['emojis'] = get_emojis(doc['tweet'])
+        doc['contains_emojis'] = len(doc['emojis']) > 0
+        doc['sentiment_score'] = sentiment_score(doc['tweet'], tweet['lang'], doc['contains_emojis'])
         doc['tweet'] = data['text']
         doc["vulgarity"] = is_vulgar(data['text'])
         doc["location"] = data['coordinates']
@@ -200,12 +202,12 @@ def is_vulgar(text):
     return (profanity.contains_profanity(text))
 
 
-def is_emoji(s):
-    return s in UNICODE_EMOJI
+def get_emojis(s):
+    new_list= emojis.get(s)
+    return list(new_list)
 
 
 def sentiment_score(text, language="en", emo=False):
-    emo = is_emoji(text)
     try:
         afinn = Afinn(language=language, emoticons=emo)
         return(afinn.score(text))
