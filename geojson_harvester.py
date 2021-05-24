@@ -81,7 +81,7 @@ def get_enriched_data(data):
         text_tokens = tweet.split()
         text_tokens = [x.lower() for x in text_tokens]
 
-        doc['emojis'] = is_emoji(tweet)
+        doc['emojis'] = get_emojis(tweet)
         doc['contains_emojis'] = len(doc['emojis']) > 0
         doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], doc['contains_emojis'])
         doc['tweet'] = tweet
