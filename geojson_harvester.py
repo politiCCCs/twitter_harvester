@@ -1,6 +1,5 @@
 from config import host, port, username, password, db_name, user_list
-from config import politics_hashtag_list, politics_list, liberals_hashtag_list, liberals_list, labor_hashtags_list, 
-    labor_list, greens_hashtags_list, greens_list, first_name, last_name
+from config import politics_hashtag_list, politics_list, liberals_hashtag_list, liberals_list, labor_hashtags_list, labor_list, greens_hashtags_list, greens_list, first_name, last_name
 from better_profanity import profanity
 from afinn import Afinn
 from emoji import UNICODE_EMOJI
@@ -12,8 +11,8 @@ import emojis
 
 duplicate_count = 0
 
-FOLDER = 'JSONS/'
-FILE_NAME = 'JSONS/geoJsonSmall.json'
+FOLDER = '/Users/amelia/Desktop/JSONS'
+FILE_NAME = '/Users/amelia/Desktop/JSONS/melbgeojsondata2.json'
 CURRENT_LOCATION = 'Melbourne'
 BOUNDING_BOX = "Polygon"
 
@@ -81,7 +80,7 @@ def get_enriched_data(data):
         text_tokens = tweet.split()
         text_tokens = [x.lower() for x in text_tokens]
 
-        doc['emojis'] = get_emojis(tweet)
+        doc['emojis'] = is_emoji(tweet)
         doc['contains_emojis'] = len(doc['emojis']) > 0
         doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], doc['contains_emojis'])
         doc['tweet'] = tweet
@@ -219,3 +218,4 @@ def file_runner():
 
 
 #file_runner()
+
