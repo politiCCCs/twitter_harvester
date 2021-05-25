@@ -5,6 +5,7 @@ from afinn import Afinn
 from emoji import UNICODE_EMOJI
 import time
 import couchdb
+import emojis
 import json
 import os
 
@@ -12,6 +13,15 @@ duplicate_count = 0
 
 FOLDER ='JSONS/'
 FILE_NAME = 'JSONS/tinyTwitter.json'
+
+def getPolitianDictionary():
+    dict = {}
+    for k, v in zip(first_name, last_name):
+        dict[k] = v
+    return dict
+
+
+POLITICAN_DICT = getPolitianDictionary()
 
 def connect_to_couch_db_server():
     secure_remote_server = couchdb.Server('http://' + username + ':' + password + '@' + host + ':' + port)
@@ -71,15 +81,16 @@ def get_enriched_data(data):
 
         doc['_id']=data['id_str']
         doc['user_name'] = data['user']['screen_name']
-        doc['emojis'] = is_emoji(data['text'])
+        doc['emojis'] = get_emojis(data['text'])
+        doc['contains_emojis'] = len(doc['emojis']) > 0
         doc['sentiment_score']=sentiment_score(data['text'], data['lang'],doc['emojis'])
         doc['tweet']=data['text']
         print(data['text'])
         doc["vulgarity"]=is_vulgar(data['text'])
         doc["location"]=data['coordinates']
         doc["geo"]=data['geo']
-        #doc["location_name"]=data['place']['name']
-        #doc["location_type"]=data['place']['place_type']
+        doc["location_name"] = data['location']
+        doc["location_type"] = 'City'
         doc["hashtags"]=data['entities']['hashtags']
         doc["retweet_count"]=data['retweet_count']
         doc["likes"] = data['favorite_count']
@@ -88,11 +99,17 @@ def get_enriched_data(data):
         doc["is_leader"] = is_leader(doc["user_name"])
         doc["regular_stream"]=True
         text_tokens = data['text'].split()
-        doc["is_political"]=is_political(text_tokens,data['entities']['user_mentions'],data['user']['screen_name'])
-        doc["is_political_general"] = is_general_political(doc["tweet"], doc["hashtags"])
+        text_tokens = [x.lower() for x in text_tokens]
+        doc["hashtags"] = [x['text'].lower() for x in doc["hashtags"]]
+        doc["is_political"] = is_political(text_tokens, data['entities']['user_mentions'], data['user']['screen_name'])
         doc["is_liberals"] = is_liberals(text_tokens, doc["hashtags"])
         doc["is_labor"] = is_labor(text_tokens, doc["hashtags"])
         doc["is_greens"] = is_greens(text_tokens, doc["hashtags"])
+        if (doc["is_liberals"] or doc['is_labor'] or doc['is_greens']) == True:
+            doc["is_political_general"] = True
+        else:
+            doc["is_political_general"] =  is_general_political(text_tokens, doc["hashtags"])
+        doc["mentions"] = data['entities']['user_mentions']
 
         end = time.time()
         print(end - start)
@@ -100,24 +117,31 @@ def get_enriched_data(data):
 
 
 def is_liberals(tokens, hashtags):
-
     try:
-        result = hashtags in liberals_hashtag_list or tokens in liberals_list
-        return result[0]
+        internal_list = liberals_list
+        internal_list2 = liberals_hashtag_list
+        return bool(set(hashtags).intersection(internal_list2)) or bool(set(tokens).intersection(internal_list))
     except:
         return False
+
 
 def is_labor(tokens, hashtags):
     try:
-        return hashtags in labor_hashtags_list or tokens in labor_list[0]
+        internal_list = labor_list
+        internal_list2 = labor_hashtags_list
+        return bool(set(hashtags).intersection(internal_list2)) or bool(set(tokens).intersection(internal_list))
     except:
         return False
 
+
 def is_greens(tokens, hashtags):
     try:
-        return hashtags in greens_hashtags_list or tokens in greens_list[0]
+        internal_list = greens_list
+        internal_list2 = greens_hashtags_list
+        return bool(set(hashtags).intersection(internal_list2)) or bool(set(tokens).intersection(internal_list))
     except:
         return False
+
 
 
 def is_general_political(tokens, hashtags):
@@ -125,22 +149,23 @@ def is_general_political(tokens, hashtags):
         return hashtags in politics_hashtag_list[0] or tokens in politics_list[0]
     except:
         return False
+    
 
-def is_political(text, user_mentions,user_screen_name):
-
-    # The    tweet is a    candidate’s    retweet;
-    # The    tweet    targets    at   least    one    candidate;
-    # The    tweet    mentions    at    least    one    candidate;
-    # The    tweet    has    a    candidate’s    proper    name;
-    # https://jisajournal.springeropen.com/articles/10.1186/s13174-018-0089-0
-
+def is_political(text_tokens, user_mentions, user_screen_name):
     try:
         if user_mentions is not None:
             for user in user_mentions:
                 if user is not None:
-                    if((user['screen_name'],user_screen_name in user_list)[1]):
+                    mentions_screen_name = user['screen_name'].lower()
+                    if ((mentions_screen_name in user_list) or (user_screen_name.lower in user_list)):
                         return True
-        return False
+
+            dict =POLITICAN_DICT
+            matches = set(text_tokens).intersection(dict.keys())
+            for match in matches:
+                if dict[match] in set(text_tokens):
+                    return True
+            return False
     except:
         return False
 
@@ -151,8 +176,9 @@ def is_vulgar(text):
     return(profanity.contains_profanity(text))
 
 
-def is_emoji(s):
-    return s in UNICODE_EMOJI
+def get_emojis(s):
+    new_list= emojis.get(s)
+    return list(new_list)
 
 
 def sentiment_score(text, language="en", emo=False):
