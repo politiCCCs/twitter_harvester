@@ -1,4 +1,5 @@
 import tweepy
+import emojis
 from tweepy import Stream
 from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
@@ -11,6 +12,7 @@ import couchdb
 from better_profanity import profanity
 from afinn import Afinn
 from emoji import UNICODE_EMOJI
+
 
 
 duplicate_count = 0
@@ -93,7 +95,8 @@ def get_enriched_data(data):
     if data['text']:
         doc['_id']=data['id_str']
         doc['user_name'] = data['user']['screen_name']
-        doc['emojis'] = is_emoji(data['text'])
+        doc['emojis'] = get_emojis(data['text'])
+        doc['contains_emojis'] = len(doc['emojis']) > 0
         doc['sentiment_score']=sentiment_score(data['text'], data['lang'])
         doc['tweet']=data['text']
         print(data['text'])
@@ -177,8 +180,9 @@ def is_vulgar(text):
     return(profanity.contains_profanity(text))
 
 
-def is_emoji(s):
-    return s in UNICODE_EMOJI
+def get_emojis(s):
+    new_list= emojis.get(s)
+    return list(new_list)
 
 
 def sentiment_score(text, language="en", emo=False):
