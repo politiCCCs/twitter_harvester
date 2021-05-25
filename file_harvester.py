@@ -13,7 +13,8 @@ import os
 duplicate_count = 0
 
 
-FOLDER ='JSONS/'
+FOLDER ='path_to_folder'
+FILE_NAME = 'path_to_file.json'
 
 
 def getPolitianDictionary():
@@ -142,7 +143,9 @@ def is_greens(tokens, hashtags):
 
 def is_general_political(tokens, hashtags):
     try:
-        return hashtags in politics_hashtag_list[0] or tokens in politics_list[0]
+        internal_list=politics_list
+        internal_list2=politics_hashtag_list
+        return bool(set(hashtags).intersection(internal_list2)) or bool(set(tokens).intersection(internal_list))
     except:
         return False
     
@@ -187,6 +190,11 @@ def sentiment_score(text, language="en", emo=False):
         return(afinn.score(text))
 
     
+# enable this for single name
+#load_from_file_to_db(FILE_NAME)
+
+
+# enable this folder full of json files
 def file_runner():
     arr = os.listdir(FOLDER)
     for file in arr:
