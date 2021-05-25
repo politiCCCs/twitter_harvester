@@ -1,4 +1,4 @@
-from config import host, port, username, password, db_name,user_list
+from config import host, port, username, password, db_name,user_list, first_name, last_name
 from config import politics_hashtag_list, politics_list, liberals_hashtag_list, liberals_list,labor_hashtags_list, labor_list, greens_hashtags_list,greens_list
 from better_profanity import profanity
 from afinn import Afinn
