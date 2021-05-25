@@ -10,7 +10,7 @@ Data can then be collected from twitter:
 
 
 Alternatively- file_harvester.py for processing JSON files from Twitter corpus on NeCTAR (does not require Twitter API).
-This is set up to process a folder of JSON files, set path to FOLDER in file_harvester.py
+Set FOLDER in file_harvester.py to path containing JSON files you want to process and add to db.
 
 
 
