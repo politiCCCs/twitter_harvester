@@ -5,11 +5,11 @@ username = password = "admin"
 db_name='twitter_db'
 
 
-#twitter api 
-consumer_key
-consumer_secret
-access_token
-access_token_secret
+#twitter api keys
+consumer_key= "HmF6Aeyovr7esaPp0l76vc5yU"
+consumer_secret= "BmPpyQtHe8sfoVvNGKhWZGP7TUqTRY6ZlU3XvzNjJPFgVuQdNS"
+access_token="1386624157815762946-et9cCKeBYm79raUjOmA3vH85rNYt5n"
+access_token_secret="iT27bUWHtnJ34jsq6JtwNgx3ryogZ608YSAmQoZZN27ZS"
 
 
 #list of politicians
