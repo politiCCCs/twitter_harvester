@@ -2,7 +2,7 @@
 
 #Running scripts
 
-In config.py - Set Twitter API leys as own personal Developer set and to desired CouchDB connection details for storing data
+In config.py - Set Twitter API keys as own personal Developer set and to desired CouchDB connection details for storing data
 
 Data can then be collected from twitter:
 - streamer.py can be run to collect real time Tweets
