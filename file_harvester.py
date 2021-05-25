@@ -9,10 +9,12 @@ import emojis
 import json
 import os
 
+
 duplicate_count = 0
 
+
 FOLDER ='JSONS/'
-FILE_NAME = 'JSONS/tinyTwitter.json'
+
 
 def getPolitianDictionary():
     dict = {}
@@ -22,6 +24,7 @@ def getPolitianDictionary():
 
 
 POLITICAN_DICT = getPolitianDictionary()
+
 
 def connect_to_couch_db_server():
     secure_remote_server = couchdb.Server('http://' + username + ':' + password + '@' + host + ':' + port)
@@ -38,10 +41,12 @@ def connect_to_database( server):
 server = connect_to_couch_db_server()
 db = connect_to_database(server)
 
+
 def initializedDB():
     server = connect_to_couch_db_server()
     db = connect_to_database(server)
 
+    
 def get_tweet_and_save(tweet):
     global duplicate_count
     try:
@@ -59,16 +64,13 @@ def get_tweet_and_save(tweet):
             tweet = get_enriched_data(tweet['doc'])
             if tweet is not None:
                 db.save(tweet)
-
     except BaseException as e:
         print("Error on_data: %s" % str(e))
-
 
 
 def load_from_file_to_db(fname):
     with open(fname,encoding='utf-8',mode='r') as json_file:
         data = json.loads(json_file.read())
-
     for tweet in data['rows']:
         print(tweet['doc'])
         get_tweet_and_save(tweet)
@@ -77,8 +79,6 @@ def load_from_file_to_db(fname):
 def get_enriched_data(data):
     doc={}
     if data['text']:
-        start = time.time()
-
         doc['_id']=data['id_str']
         doc['user_name'] = data['user']['screen_name']
         doc['emojis'] = get_emojis(data['text'])
@@ -110,9 +110,6 @@ def get_enriched_data(data):
         else:
             doc["is_political_general"] =  is_general_political(text_tokens, doc["hashtags"])
         doc["mentions"] = data['entities']['user_mentions']
-
-        end = time.time()
-        print(end - start)
     return (doc)
 
 
@@ -143,7 +140,6 @@ def is_greens(tokens, hashtags):
         return False
 
 
-
 def is_general_political(tokens, hashtags):
     try:
         return hashtags in politics_hashtag_list[0] or tokens in politics_list[0]
@@ -159,7 +155,6 @@ def is_political(text_tokens, user_mentions, user_screen_name):
                     mentions_screen_name = user['screen_name'].lower()
                     if ((mentions_screen_name in user_list) or (user_screen_name.lower in user_list)):
                         return True
-
             dict =POLITICAN_DICT
             matches = set(text_tokens).intersection(dict.keys())
             for match in matches:
@@ -169,8 +164,10 @@ def is_political(text_tokens, user_mentions, user_screen_name):
     except:
         return False
 
+    
 def is_leader(user):
     return user in user_list
+
 
 def is_vulgar(text):
     return(profanity.contains_profanity(text))
@@ -189,11 +186,7 @@ def sentiment_score(text, language="en", emo=False):
         afinn = Afinn()
         return(afinn.score(text))
 
-# enable this for single name
-#load_from_file_to_db(FILE_NAME)
-
-
-# enable this folder full of json files
+    
 def file_runner():
     arr = os.listdir(FOLDER)
     for file in arr:
