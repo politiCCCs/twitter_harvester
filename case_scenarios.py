@@ -1,3 +1,19 @@
+# ============= COMP90024 - Assignment 2 ============= #
+#                               
+# The University of Melbourne           
+# Team 5
+#
+# ** Authors: **
+# 
+# Aleksandar Pasquini (912504)
+# Amelia Fleischer-Boermans (389511)
+# Isaac Daly (1129173)
+# Mahardini Rizky Putri (921790)
+# Richard Yang (1215150)
+# 
+# Location: Melbourne
+# ==================================================== 
+
 import tweepy
 from tweepy import OAuthHandler
 from better_profanity import profanity
