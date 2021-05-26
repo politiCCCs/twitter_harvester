@@ -1,3 +1,19 @@
+# ============= COMP90024 - Assignment 2 ============= #
+#                               
+# The University of Melbourne           
+# Team 5
+#
+# ** Authors: **
+# 
+# Aleksandar Pasquini (912504)
+# Amelia Fleischer-Boermans (389511)
+# Isaac Daly (1129173)
+# Mahardini Rizky Putri (921790)
+# Richard Yang (1215150)
+# 
+# Location: Melbourne
+# ==================================================== 
+
 from config import host, port, username, password, db_name,user_list, first_name, last_name
 from config import politics_hashtag_list, politics_list, liberals_hashtag_list, liberals_list,labor_hashtags_list, labor_list, greens_hashtags_list,greens_list
 from better_profanity import profanity
