@@ -9,8 +9,8 @@ Data can then be collected from twitter:
 - case_scenarios.py can be run to extract tweets from Australian politician's timelines
 
 
-Alternatively- file_harvester.py for processing JSON files from Twitter corpus on NeCTAR (does not require Twitter API).
-Set FOLDER in file_harvester.py to path containing JSON files you want to process and add to db.
+Alternatively- file_harvester.py for processing JSON files from UniMelb Twitter corpus (does not require Twitter API).
+
 
 
 
