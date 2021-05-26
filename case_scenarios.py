@@ -3,12 +3,13 @@ from tweepy import OAuthHandler
 from better_profanity import profanity
 from afinn import Afinn
 from config import consumer_key, consumer_secret, access_token, access_token_secret
-from config import host, port, username, password, db_name, user_list, labor_mp, liberal_mp, green_mp
+from config import host, port, username, password, db_name,  labor_mp, liberal_mp, green_mp, user_list
 import couchdb
 import time
 import datetime
 import json
 import emojis
+
 
 
 def connect_to_couch_db_server():
@@ -52,6 +53,7 @@ def run_batch_for_all_users():
             continue
 
 
+
 def get_tweets_and_save(user):
     duplicate_count = 0
     tweets = custom_runner(user)
@@ -62,6 +64,7 @@ def get_tweets_and_save(user):
             MyDocId = tweet.id_str
             tweet = json.dumps(tweet._json)
             tweet = json.loads(tweet)
+
             temp_record = db.get(MyDocId)
             # Duplicate check
             if temp_record is not None:
@@ -69,10 +72,20 @@ def get_tweets_and_save(user):
                 print("There was a duplicate tweet")
                 print(duplicate_count)
                 print("\n")
+                data = tweet['doc']
+                doc = temp_record
+                doc['emojis'] = get_emojis(data['text'])
+                doc['contains_emojis'] = len(doc['emojis']) > 0
+                doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], doc['contains_emojis'])
+                db.save(doc)
+                print("\n")
             else:
                 tweet = get_enriched_data(tweet)
                 if tweet is not None:
                     db.save(tweet)
+
+
+
         except BaseException as e:
             print("Error on_data: %s" % str(e))
 
@@ -81,11 +94,14 @@ def custom_runner(id):
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
+    # client = tweepy.Client(auth)
     startDate = datetime.datetime(2011, 6, 1, 0, 0, 0)
     endDate = datetime.datetime(2022, 1, 1, 0, 0, 0)
+
     tweets = []
     # fetching the user
     user = api.get_user(id)
+
     # fetching the statuses_count attribute
     statuses_count = user.statuses_count
     print(statuses_count)
@@ -93,13 +109,13 @@ def custom_runner(id):
     try:
         # initialize a list to hold all the tweepy Tweets
         alltweets = []
-        
+
         # make initial request for most recent tweets (200 is the maximum allowed count)
         new_tweets = api.user_timeline(screen_name=id, count=200)
-        
+
         # save most recent tweets
         alltweets.extend(new_tweets)
-        
+
         oldest = alltweets[-1].id - 1
 
         if (alltweets is not None and len(alltweets) == 200):
@@ -115,9 +131,14 @@ def custom_runner(id):
 
                 # update the id of the oldest tweet less one
                 oldest = alltweets[-1].id - 1
+
     except:
         pass
+
     return alltweets
+
+
+
 
 
 def get_enriched_data(data):
@@ -126,9 +147,9 @@ def get_enriched_data(data):
     if data['text']:
         doc['_id'] = data['id_str']
         doc['user_name'] = data['user']['screen_name']
-        doc['emojis'] = get_emojis(doc['tweet'])
+        doc['emojis'] = get_emojis(data['text'])
         doc['contains_emojis'] = len(doc['emojis']) > 0
-        doc['sentiment_score'] = sentiment_score(doc['tweet'], tweet['lang'], doc['contains_emojis'])
+        doc['sentiment_score'] = sentiment_score(data['text'], data['lang'], doc['contains_emojis'])
         doc['tweet'] = data['text']
         doc["vulgarity"] = is_vulgar(data['text'])
         doc["location"] = data['coordinates']
@@ -149,24 +170,14 @@ def get_enriched_data(data):
         doc["is_greens"] = is_greens(data['user']['screen_name'])
     return (doc)
 
-
 def is_liberals(user):
-    if user[0] != '@':
-        user = '@' + user
     return user in liberal_mp
 
-
 def is_labor(user):
-    if user[0] != '@':
-        user = '@' + user
     return user in labor_mp
 
-
 def is_greens(user):
-    if user[0] != '@':
-        user = '@' + user
     return user in green_mp
-
 
 def is_general_political(text, hashtags):
     # returns true as quoted by political candidate
@@ -197,3 +208,5 @@ def sentiment_score(text, language="en", emo=False):
 
 
 run_batch_for_all_users()
+
+
